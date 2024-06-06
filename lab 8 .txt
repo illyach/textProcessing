@@ -1,0 +1,91 @@
+import nltk
+from nltk.tokenize import sent_tokenize, word_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import WordNetLemmatizer
+import ssl
+import csv
+import spacy
+
+# Відключення перевірки SSL-сертифікатів
+ssl._create_default_https_context = ssl._create_unverified_context
+
+# Завантаження необхідних даних
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+
+# Завантаження моделі для української мови
+nlp = spacy.load("uk_core_news_sm")
+
+# Приклад тексту українською
+text_ukr = """Гоголь досі залишається нерозгаданою загадкою. Його переслідувала містика..."""  # Додайте повний текст
+
+# Розбиття на речення
+sentences_ukr = sent_tokenize(text_ukr, language='russian')  # для української мови використовуємо 'russian'
+print("Sentences:", sentences_ukr)
+
+# Лематизація та видалення стоп-слів за допомогою spaCy
+lemmas_ukr = []
+for sentence in sentences_ukr:
+    doc = nlp(sentence)
+    filtered_words = [token.lemma_ for token in doc if not token.is_stop and not token.is_punct and token.is_alpha]
+    lemmas_ukr.append(filtered_words)
+
+print("Lemmas per sentence:", lemmas_ukr)
+
+# Створення словника
+dictionary_ukr = set(word for sentence in lemmas_ukr for word in sentence)
+print("Dictionary:", dictionary_ukr)
+
+# Побудова векторів мішка слів (OHE)
+ohe_vectors_ukr = []
+for sentence in lemmas_ukr:
+    vector = [1 if word in sentence else 0 for word in dictionary_ukr]
+    ohe_vectors_ukr.append(vector)
+
+print("OHE Vectors:", ohe_vectors_ukr)
+
+# Запис результатів у файл
+with open('ukrainian_text_analysis.csv', mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(["Sentence", "OHE Vector"])
+    for sentence, vector in zip(sentences_ukr, ohe_vectors_ukr):
+        writer.writerow([sentence, vector])
+
+# Повторимо ті ж самі кроки для англійського тексту
+text_eng = """Gogol is still an unsolved mystery. He was haunted by mysticism..."""  # Додайте повний текст
+
+# Розбиття на речення
+sentences_eng = sent_tokenize(text_eng)
+print("Sentences:", sentences_eng)
+
+# Лематизація та видалення стоп-слів за допомогою NLTK
+stop_words_eng = set(stopwords.words('english'))
+lemmatizer = WordNetLemmatizer()
+
+lemmas_eng = []
+for sentence in sentences_eng:
+    words = word_tokenize(sentence)
+    filtered_words = [lemmatizer.lemmatize(word) for word in words if word.lower() not in stop_words_eng and word.isalnum()]
+    lemmas_eng.append(filtered_words)
+
+print("Lemmas per sentence:", lemmas_eng)
+
+# Створення словника
+dictionary_eng = set(word for sentence in lemmas_eng for word in sentence)
+print("Dictionary:", dictionary_eng)
+
+# Побудова векторів мішка слів (OHE)
+ohe_vectors_eng = []
+for sentence in lemmas_eng:
+    vector = [1 if word in sentence else 0 for word in dictionary_eng]
+    ohe_vectors_eng.append(vector)
+
+print("OHE Vectors:", ohe_vectors_eng)
+
+# Запис результатів у файл
+with open('english_text_analysis.csv', mode='w', newline='') as file:
+    writer = csv.writer(file)
+    writer.writerow(["Sentence", "OHE Vector"])
+    for sentence, vector in zip(sentences_eng, ohe_vectors_eng):
+        writer.writerow([sentence, vector])
