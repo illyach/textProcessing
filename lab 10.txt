@@ -1,0 +1,165 @@
+import re
+import jellyfish
+import transliterate
+
+
+def caverphone(word):
+    word = word.lower()
+
+    # 1. Remove any non-alpha characters
+    word = re.sub(r'[^a-z]', '', word)
+
+    # 2. If the name starts with 'cough', change it to 'cou2f'
+    word = re.sub(r'^cough', 'cou2f', word)
+
+    # 3. If the name starts with 'rough', change it to 'rou2f'
+    word = re.sub(r'^rough', 'rou2f', word)
+
+    # 4. If the name starts with 'tough', change it to 'tou2f'
+    word = re.sub(r'^tough', 'tou2f', word)
+
+    # 5. If the name starts with 'enough', change it to 'enou2f'
+    word = re.sub(r'^enough', 'enou2f', word)
+
+    # 6. If the name starts with 'gn', change it to '2n'
+    word = re.sub(r'^gn', '2n', word)
+
+    # 7. Drop 'mb' if at the end of the name
+    word = re.sub(r'mb$', 'm2', word)
+
+    # 8. Replace 'cq' with '2q'
+    word = re.sub(r'cq', '2q', word)
+
+    # 9. Replace 'ci', 'ce' and 'cy' with 'si', 'se' and 'sy'
+    word = re.sub(r'ci', 'si', word)
+    word = re.sub(r'ce', 'se', word)
+    word = re.sub(r'cy', 'sy', word)
+
+    # 10. Replace 'tch' with '2ch'
+    word = re.sub(r'tch', '2ch', word)
+
+    # 11. Replace 'c' with 'k'
+    word = re.sub(r'c', 'k', word)
+
+    # 12. Replace 'q' with 'k'
+    word = re.sub(r'q', 'k', word)
+
+    # 13. Replace 'x' with 'k'
+    word = re.sub(r'x', 'k', word)
+
+    # 14. Replace 'v' with 'f'
+    word = re.sub(r'v', 'f', word)
+
+    # 15. Replace 'dg' with '2g'
+    word = re.sub(r'dg', '2g', word)
+
+    # 16. Replace 'tio' with 'sio'
+    word = re.sub(r'tio', 'sio', word)
+
+    # 17. Replace 'tia' with 'sia'
+    word = re.sub(r'tia', 'sia', word)
+
+    # 18. Replace 'd' with 't'
+    word = re.sub(r'd', 't', word)
+
+    # 19. Replace 'ph' with 'fh'
+    word = re.sub(r'ph', 'fh', word)
+
+    # 20. Replace 'b' with 'p'
+    word = re.sub(r'b', 'p', word)
+
+    # 21. Replace 'sh' with 's2'
+    word = re.sub(r'sh', 's2', word)
+
+    # 22. Replace 'z' with 's'
+    word = re.sub(r'z', 's', word)
+
+    # 23. Replace initial 'ae', 'oe' with 'a', 'o'
+    word = re.sub(r'^ae', 'a', word)
+    word = re.sub(r'^oe', 'o', word)
+
+    # 24. Drop 'g' if followed by 'h' and not at the end of the word
+    word = re.sub(r'gh', '22', word)
+
+    # 25. Replace 'kn' with 'n'
+    word = re.sub(r'kn', 'n', word)
+
+    # 26. Replace 'gn' with 'n'
+    word = re.sub(r'gn', 'n', word)
+
+    # 27. Replace 'pn' with 'n'
+    word = re.sub(r'pn', 'n', word)
+
+    # 28. Replace 'wr' with 'r'
+    word = re.sub(r'wr', 'r', word)
+
+    # 29. Drop 'wh' if at the start
+    word = re.sub(r'^wh', 'w', word)
+
+    # 30. Drop 'h' if not preceded by a vowel
+    word = re.sub(r'([^aeiou])h', r'\1', word)
+
+    # 31. Replace 'r' with '2' if followed by a vowel
+    word = re.sub(r'r([aeiou])', r'2\1', word)
+
+    # 32. Replace 'l' with '2' if followed by a vowel
+    word = re.sub(r'l([aeiou])', r'2\1', word)
+
+    # 33. Drop 'w' if not followed by a vowel
+    word = re.sub(r'w([^aeiou])', r'\1', word)
+
+    # 34. Add '1' if ends with 'e'
+    word = re.sub(r'e$', '1', word)
+
+    # 35. Add '1' if ends with 'y'
+    word = re.sub(r'y$', '1', word)
+
+    # 36. Remove all vowels
+    word = re.sub(r'[aeiou]', '', word)
+
+    # 37. Append '111111' to make it 10 characters long
+    word = (word + '111111')[:10]
+
+    return word
+
+
+# Транслітерація українських прізвищ
+ukrainian_surnames = [
+    "Мельник", "Шевченко", "Коваленко", "Бондаренко", "Бойко",
+    "Ткаченко", "Кравченко", "Ковальчук", "Коваль", "Олійник",
+    "Шевчук", "Поліщук", "Ткачук", "Савченко", "Бондар",
+    "Марченко", "Руденко", "Мороз", "Лисенко", "Петренко",
+    "Клименко", "Павленко", "Кравчук", "Кузьменко", "Пономаренко",
+    "Савчук", "Василенко", "Левченко", "Харченко", "Сидоренко",
+    "Карпенко", "Гаврилюк", "Швець", "Мельничук"
+]
+
+transliterated_surnames = [transliterate.translit(name, 'uk', reversed=True) for name in ukrainian_surnames]
+
+# Використання бібліотеки jellyfish для обчислення метафонів
+metaphone_codes = {name: jellyfish.metaphone(trans_name) for name, trans_name in
+                   zip(ukrainian_surnames, transliterated_surnames)}
+
+# Використання власної функції для обчислення коду Каверфон
+caverphone_codes = {name: caverphone(trans_name) for name, trans_name in
+                    zip(ukrainian_surnames, transliterated_surnames)}
+
+# Виведення результатів
+print("Metaphone Codes:")
+for surname, code in metaphone_codes.items():
+    print(f"{surname}: {code}")
+
+print("\nCaverphone Codes:")
+for surname, code in caverphone_codes.items():
+    print(f"{surname}: {code}")
+
+
+# Збереження результатів у файли
+def save_results(filename, data):
+    with open(filename, 'w', encoding='utf-8') as file:
+        for surname, code in data.items():
+            file.write(f"{surname}: {code}\n")
+
+
+save_results('metaphone_results.txt', metaphone_codes)
+save_results('caverphone_results.txt', caverphone_codes)
